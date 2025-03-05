@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI PPT Generator with Quiz</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+        textarea {
+            width: 80%;
+            height: 100px;
+            margin: 10px;
+            padding: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #presentation, #quizSection {
+            margin-top: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            max-width: 800px;
+            margin: auto;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>AI Powered PPT Generator & Quiz</h1>
+
+    <div id="generator">
+        <h2>Create Your Presentation</h2>
+        <textarea id="topicInput" placeholder="Enter your topic (e.g., Artificial Intelligence)"></textarea>
+        <button onclick="generateSlides()">Generate Slides</button>
+    </div>
+
+    <div id="presentation" style="display:none;">
+        <h2 id="slideTitle"></h2>
+        <p id="slideContent"></p>
+        <button onclick="prevSlide()">Previous</button>
+        <button onclick="nextSlide()">Next</button>
+        <button onclick="speakText()">🔊 Speak</button>
+        <button onclick="exportToPPT()">Download as PPT</button>
+    </div>
+
+    <div id="quizSection" style="display:none;">
+        <h2>Quiz</h2>
+        <p id="quizQuestion"></p>
+        <button onclick="checkAnswer(0)">A) Python</button>
+        <button onclick="checkAnswer(1)">B) Java</button>
+        <button onclick="checkAnswer(2)">C) C++</button>
+        <p id="quizResult"></p>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pptxgenjs/3.11.0/pptxgen.min.js"></script>
+    <script>
+        let slides = [];
+        let currentSlide = 0;
+
+        function generateSlides() {
+            let topic = document.getElementById("topicInput").value.trim();
+            if (topic === "") {
+                alert("Please enter a topic!");
+                return;
+            }
+
+            slides = [
+                { title: `Introduction to ${topic}`, content: `${topic} is a fascinating subject that impacts various fields.` },
+                { title: `How ${topic} Works`, content: `${topic} works by using advanced algorithms and models.` },
+                { title: `Future of ${topic}`, content: `The future of ${topic} looks promising with many advancements.` }
+            ];
+
+            document.getElementById("generator").style.display = "none";
+            document.getElementById("presentation").style.display = "block";
+            showSlide(0);
+        }
+
+        function showSlide(index) {
+            document.getElementById("slideTitle").innerText = slides[index].title;
+            document.getElementById("slideContent").innerText = slides[index].content;
+        }
+
+        function nextSlide() {
+            if (currentSlide < slides.length - 1) {
+                currentSlide++;
+                showSlide(currentSlide);
+            } else {
+                document.getElementById("presentation").style.display = "none";
+                document.getElementById("quizSection").style.display = "block";
+                startQuiz();
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 0) {
+                currentSlide--;
+                showSlide(currentSlide);
+            }
+        }
+
+        function speakText() {
+            let text = slides[currentSlide].title + ". " + slides[currentSlide].content;
+            let speech = new SpeechSynthesisUtterance(text);
+            speech.lang = "en-US";
+            window.speechSynthesis.speak(speech);
+        }
+
+        const quizQuestions = [
+            { question: "Which language is commonly used for AI?", correctIndex: 0, options: ["Python", "Java", "C++"] },
+            { question: "What does HTML stand for?", correctIndex: 1, options: ["Hyper Transfer Markup Language", "Hyper Text Markup Language", "High Tech Modern Language"] }
+        ];
+
+        let currentQuizIndex = 0;
+
+        function startQuiz() {
+            document.getElementById("quizQuestion").innerText = quizQuestions[currentQuizIndex].question;
+            document.querySelectorAll("#quizSection button").forEach((btn, i) => {
+                btn.innerText = `${String.fromCharCode(65 + i)}) ${quizQuestions[currentQuizIndex].options[i]}`;
+            });
+        }
+
+        function checkAnswer(selectedIndex) {
+            let result = document.getElementById("quizResult");
+            if (selectedIndex === quizQuestions[currentQuizIndex].correctIndex) {
+                result.innerText = "Correct! 🎉";
+                result.style.color = "green";
+            } else {
+                result.innerText = "Incorrect! ❌ Try again.";
+                result.style.color = "red";
+            }
+
+            if (currentQuizIndex < quizQuestions.length - 1) {
+                currentQuizIndex++;
+                setTimeout(startQuiz, 1000);
+            } else {
+                result.innerText = "Quiz Completed! 🎉";
+            }
+        }
+
+        function exportToPPT() {
+            let pptx = new PptxGenJS();
+            slides.forEach(slide => {
+                let slideObj = pptx.addSlide();
+                slideObj.addText(slide.title, { x: 1, y: 0.5, fontSize: 24, bold: true });
+                slideObj.addText(slide.content, { x: 1, y: 1.5, fontSize: 18 });
+            });
+            pptx.writeFile({ fileName: "AI_Presentation.pptx" });
+        }
+    </script>
+
+</body>
+</html>
